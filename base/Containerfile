@@ -1,0 +1,4 @@
+FROM ghcr.io/ublue-os/aurora-dx-nvidia-open:stable
+RUN dnf install -y nodejs python3 gcc git gh htop chezmoi age && dnf clean all
+COPY overlay/ /
+RUN bootc container lint

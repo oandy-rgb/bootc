@@ -1,0 +1,15 @@
+[Unit]
+Description=OmniTools self-hosted utilities
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+Image=ghcr.io/iib0011/omni-tools:latest
+PublishPort=8080:80
+AutoUpdate=registry
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
