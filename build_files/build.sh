@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SOPS_VERSION="v3.13.1"
+K3S_VERSION="v1.31.5+k3s1"
+
+cp -av /ctx/system_files/. /
+
+dnf install -y \
+  --disablerepo="*" --enablerepo="fedora" --enablerepo="updates" \
+  --setopt=zchunk=False --setopt=minrate=0 \
+  nodejs python3 gcc git gh htop chezmoi age nix restic rclone
+dnf clean all
+
+curl -fL -o /usr/bin/sops \
+  "https://github.com/getsops/sops/releases/download/${SOPS_VERSION}/sops-${SOPS_VERSION}.linux.amd64"
+chmod +x /usr/bin/sops
+test "$(stat -c%s /usr/bin/sops)" -gt 1000000
+sops --version
+
+curl -fL -o /usr/bin/k3s \
+  "https://github.com/k3s-io/k3s/releases/download/${K3S_VERSION}/k3s"
+chmod +x /usr/bin/k3s
+test "$(stat -c%s /usr/bin/k3s)" -gt 10000000
+k3s --version
+
+chmod +x /usr/local/bin/backup.sh
+systemctl enable nix-daemon.socket backup.timer k3s.service

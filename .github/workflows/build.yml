@@ -1,0 +1,59 @@
+name: Build bootc image
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    - cron: "05 10 * * *"
+  workflow_dispatch:
+
+env:
+  IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
+  IMAGE_NAME: laptop
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    env:
+      SIGNING_SECRET: ${{ secrets.SIGNING_SECRET }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: extractions/setup-just@f8a3cce218d9f83db3a2ecd90e41ac3de6cdfd9b # v3
+
+      - name: Check recipe and shell syntax
+        run: just check
+
+      - name: Build local image
+        run: just build
+
+      - name: Log in to GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push image
+        if: github.event_name != 'pull_request'
+        id: push
+        run: |
+          image="${IMAGE_REGISTRY}/${IMAGE_NAME}:latest"
+          podman tag "localhost/${IMAGE_NAME}:latest" "$image"
+          podman push --digestfile=/tmp/image-digest "$image"
+          echo "image=$image" >> "$GITHUB_OUTPUT"
+          echo "digest=$(cat /tmp/image-digest)" >> "$GITHUB_OUTPUT"
+
+      - name: Install Cosign
+        if: github.event_name != 'pull_request' && env.SIGNING_SECRET != ''
+        uses: sigstore/cosign-installer@f713795cb21599bc4e5c4b58cbad1da852d7eeb9 # v3
+
+      - name: Sign published image
+        if: github.event_name != 'pull_request' && env.SIGNING_SECRET != ''
+        run: cosign sign -y --key env://SIGNING_SECRET "${{ steps.push.outputs.image }}@${{ steps.push.outputs.digest }}"

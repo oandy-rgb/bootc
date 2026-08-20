@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
 LOCAL_REPO="/run/media/oandy/X9 Pro/bootc/restic-repo"
 SOURCE="/var/home/oandy"
