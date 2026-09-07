@@ -4,4 +4,4 @@ Description=Restic backup to X9 Pro
 [Service]
 Type=oneshot
 EnvironmentFile=/etc/restic/password.env
-ExecStart=/usr/local/bin/backup.sh
+ExecStart=/usr/bin/backup.sh

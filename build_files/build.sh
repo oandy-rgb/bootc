@@ -24,5 +24,5 @@ chmod +x /usr/bin/k3s
 test "$(stat -c%s /usr/bin/k3s)" -gt 10000000
 k3s --version
 
-chmod +x /usr/local/bin/backup.sh
+chmod +x /usr/bin/backup.sh
 systemctl enable nix-daemon.socket backup.timer k3s.service
