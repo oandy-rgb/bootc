@@ -9,8 +9,13 @@ cp -av /ctx/system_files/. /
 dnf install -y \
   --disablerepo="*" --enablerepo="fedora" --enablerepo="updates" \
   --setopt=zchunk=False --setopt=minrate=0 \
-  nodejs python3 gcc git gh htop chezmoi age nix restic rclone
+  nodejs python3 gcc git gh htop chezmoi age nix restic rclone \
+  avr-binutils avr-gcc avr-libc
 dnf clean all
+
+printf 'int main(void) { return 0; }\n' | \
+  avr-gcc -mmcu=atmega328p -x c -o /tmp/avr-smoke.elf -
+avr-size /tmp/avr-smoke.elf
 
 curl -fL -o /usr/bin/sops \
   "https://github.com/getsops/sops/releases/download/${SOPS_VERSION}/sops-${SOPS_VERSION}.linux.amd64"
@@ -25,4 +30,4 @@ test "$(stat -c%s /usr/bin/k3s)" -gt 10000000
 k3s --version
 
 chmod +x /usr/bin/backup.sh
-systemctl enable nix-daemon.socket backup.timer k3s.service
+systemctl enable nix.mount nix-daemon.socket backup.timer k3s.service

@@ -1,0 +1,23 @@
+[Unit]
+Description=將持久 Nix 資料掛載到 /nix
+
+# 等 tmpfiles 建立 /var/lib/nix，再進行掛載。
+Requires=systemd-tmpfiles-setup.service
+After=systemd-tmpfiles-setup.service
+
+# Nix daemon 啟動前，/nix 必須已經可寫。
+Before=nix-daemon.socket nix-daemon.service
+PropagatesStopTo=nix-daemon.service
+ConditionPathIsDirectory=/nix
+DefaultDependencies=no
+
+[Mount]
+What=/var/lib/nix
+Where=/nix
+Type=none
+DirectoryMode=0755
+Options=bind
+
+[Install]
+RequiredBy=nix-daemon.socket
+RequiredBy=nix-daemon.service
