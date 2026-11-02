@@ -7,6 +7,8 @@ Wants=network-online.target
 Type=notify
 ExecStartPre=-/sbin/modprobe br_netfilter
 ExecStartPre=-/sbin/modprobe overlay
+# /var 不會隨映像更新，每次啟動前從 /usr 同步自動部署的 manifests。
+ExecStartPre=/usr/bin/sh -c 'mkdir -p /var/lib/rancher/k3s/server/manifests && install -m 0600 /usr/share/k3s/manifests/*.yaml /var/lib/rancher/k3s/server/manifests/'
 ExecStart=/usr/bin/k3s server --disable traefik --write-kubeconfig-mode 644
 KillMode=process
 Delegate=yes

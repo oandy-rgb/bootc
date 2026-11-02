@@ -5,7 +5,7 @@ just switch
 ```
 
 能創一個aurora資料夾裡面放bootc,dotfiles,home-ops
-`just build` 會在一般使用者的 Podman 儲存區建置映像；`just switch` 會自動將映像匯入 root 儲存區，再交給 bootc。如果系統已經追蹤同名映像，腳本會自動改用 `bootc upgrade` 排程新 digest。預設映像名稱為 `localhost/laptop:latest`。基底映像設定在 `image-template.env`。
+`just build` 會用 `sudo podman build` 直接在 root 的 Podman 儲存區建置映像，`just switch` 再交給 bootc，中間不用匯出匯入。不要用 `sudo just ...`，需要權限時腳本會自己詢問。只改自己的設定、不想更新基底映像時，用 `just build-fast`（或 `just build-fast-and-switch`）。如果系統已經追蹤同名映像，腳本會自動改用 `bootc upgrade` 排程新 digest。預設映像名稱為 `localhost/laptop:latest`。基底映像設定在 `image-template.env`。
 
 ## Runtime state and secrets
 
@@ -29,3 +29,26 @@ nix run nixpkgs#hello
 
 ujust jetbrains-toolbox
 推薦用於jetbrains全家桶而不是flatpak
+
+## k3s 與 Flux
+
+映像內建 k3s，並透過 k3s 的自動部署安裝 Flux（做法沿用 `note/nixos` 的 `k3s-server.nix`）：
+
+```text
+/usr/share/k3s/manifests/flux.yaml        映像裡的來源（Flux Operator + FluxInstance 兩個 HelmChart）
+        │ k3s.service 每次啟動前複製
+        ▼
+/var/lib/rancher/k3s/server/manifests/    k3s 自動套用這個資料夾
+        ▼
+Flux 同步 github.com/oandy-rgb/home-ops 的 clusters/oandy-laptop
+```
+
+升級 Flux Operator：改 `flux.yaml` 裡兩個 `version`，重建映像並重開機。不要刪除或改名 `flux.yaml`，HelmChart 消失時 k3s 會解除安裝 Flux。
+
+GitHub token 與 age 私鑰不進映像。重灌後執行一次：
+
+```bash
+just flux-secrets   # 會詢問 GitHub token，age 私鑰讀 ~/.config/sops/age/keys.txt
+```
+
+從手動安裝的 Flux 遷移時，在切換到這版映像前先執行一次 `just flux-adopt`，讓 HelmChart 能接手既有的 FluxInstance。

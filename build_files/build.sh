@@ -3,6 +3,7 @@ set -euo pipefail
 
 SOPS_VERSION="v3.13.1"
 K3S_VERSION="v1.31.5+k3s1"
+GPOC_VERSION="3.2.0"
 
 cp -av /ctx/system_files/. /
 
@@ -11,6 +12,10 @@ dnf install -y \
   --setopt=zchunk=False --setopt=minrate=0 \
   nodejs python3 gcc git gh htop chezmoi age nix restic rclone \
   avr-binutils avr-gcc avr-libc
+dnf install -y \
+  --disablerepo="*" --enablerepo="fedora" --enablerepo="updates" \
+  --setopt=zchunk=False --setopt=minrate=0 \
+  "https://github.com/yuezk/GlobalProtect-openconnect/releases/download/v${GPOC_VERSION}/globalprotect-openconnect-${GPOC_VERSION}-1.x86_64.rpm"
 dnf clean all
 
 printf 'int main(void) { return 0; }\n' | \
@@ -30,4 +35,4 @@ test "$(stat -c%s /usr/bin/k3s)" -gt 10000000
 k3s --version
 
 chmod +x /usr/bin/backup.sh
-systemctl enable nix.mount nix-daemon.socket backup.timer k3s.service
+systemctl enable nix.mount nix-daemon.socket backup.timer
