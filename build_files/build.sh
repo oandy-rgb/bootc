@@ -7,11 +7,14 @@ GPOC_VERSION="3.2.0"
 
 cp -av /ctx/system_files/. /
 
+# Pin the GID so dumpcap's group ownership matches the existing /etc/group on deployed hosts
+getent group wireshark >/dev/null || groupadd -r -g 936 wireshark
+
 dnf install -y \
   --disablerepo="*" --enablerepo="fedora" --enablerepo="updates" \
   --setopt=zchunk=False --setopt=minrate=0 \
   nodejs python3 gcc git gh htop chezmoi age nix restic rclone \
-  avr-binutils avr-gcc avr-libc
+  avr-binutils avr-gcc avr-libc wireshark
 dnf install -y \
   --disablerepo="*" --enablerepo="fedora" --enablerepo="updates" \
   --setopt=zchunk=False --setopt=minrate=0 \
@@ -21,6 +24,9 @@ dnf clean all
 printf 'int main(void) { return 0; }\n' | \
   avr-gcc -mmcu=atmega328p -x c -o /tmp/avr-smoke.elf -
 avr-size /tmp/avr-smoke.elf
+
+test "$(stat -c%g /usr/bin/dumpcap)" = 936
+getcap /usr/bin/dumpcap | grep -q cap_net_raw
 
 curl -fL -o /usr/bin/sops \
   "https://github.com/getsops/sops/releases/download/${SOPS_VERSION}/sops-${SOPS_VERSION}.linux.amd64"
