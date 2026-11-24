@@ -15,7 +15,8 @@ dnf install -y \
   --disablerepo="*" --enablerepo="fedora" --enablerepo="updates" \
   --setopt=zchunk=False --setopt=minrate=0 \
   nodejs python3 gcc git gh htop chezmoi age nix restic rclone \
-  avr-binutils avr-gcc avr-libc wireshark
+  avr-binutils avr-gcc avr-libc wireshark \
+  fcitx5 fcitx5-chewing fcitx5-qt fcitx5-gtk fcitx5-configtool kcm-fcitx5 fcitx5-autostart
 dnf install -y \
   --disablerepo="*" --enablerepo="fedora" --enablerepo="updates" \
   --setopt=zchunk=False --setopt=minrate=0 \
@@ -39,6 +40,9 @@ getcap /usr/bin/dumpcap | grep -q cap_net_raw
 
 test -x /usr/share/antigravity/antigravity
 test -f /usr/share/applications/antigravity.desktop
+
+test -x /usr/bin/fcitx5
+test -f /usr/lib64/fcitx5/libchewing.so
 
 curl -fL -o /usr/bin/sops \
   "https://github.com/getsops/sops/releases/download/${SOPS_VERSION}/sops-${SOPS_VERSION}.linux.amd64"
