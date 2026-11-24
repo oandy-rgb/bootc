@@ -4,7 +4,6 @@ set -euo pipefail
 SOPS_VERSION="v3.13.1"
 K3S_VERSION="v1.31.5+k3s1"
 GPOC_VERSION="3.2.0"
-ANTIGRAVITY_REPO="https://us-central1-yum.pkg.dev/projects/antigravity-auto-updater-dev/antigravity-rpm"
 
 cp -av /ctx/system_files/. /
 
@@ -21,14 +20,6 @@ dnf install -y \
   --disablerepo="*" --enablerepo="fedora" --enablerepo="updates" \
   --setopt=zchunk=False --setopt=minrate=0 \
   "https://github.com/yuezk/GlobalProtect-openconnect/releases/download/v${GPOC_VERSION}/globalprotect-openconnect-${GPOC_VERSION}-1.x86_64.rpm"
-# Antigravity packages are signed with Google's Linux signing key; the repo is only used at build time
-rpm --import https://dl.google.com/linux/linux_signing_key.pub
-dnf install -y \
-  --disablerepo="*" --enablerepo="fedora" --enablerepo="updates" \
-  --repofrompath="antigravity,${ANTIGRAVITY_REPO}" \
-  --enablerepo="antigravity" --setopt=antigravity.gpgcheck=1 \
-  --setopt=zchunk=False --setopt=minrate=0 \
-  antigravity
 dnf clean all
 
 printf 'int main(void) { return 0; }\n' | \
@@ -37,9 +28,6 @@ avr-size /tmp/avr-smoke.elf
 
 test "$(stat -c%g /usr/bin/dumpcap)" = 936
 getcap /usr/bin/dumpcap | grep -q cap_net_raw
-
-test -x /usr/share/antigravity/antigravity
-test -f /usr/share/applications/antigravity.desktop
 
 test -x /usr/bin/fcitx5
 test -f /usr/lib64/fcitx5/libchewing.so
