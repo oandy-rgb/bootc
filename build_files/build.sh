@@ -16,7 +16,7 @@ dnf install -y \
   --setopt=zchunk=False --setopt=minrate=0 \
   nodejs python3 gcc git gh htop chezmoi age nix restic rclone \
   avr-binutils avr-gcc avr-libc wireshark \
-  fcitx5 fcitx5-chewing fcitx5-qt fcitx5-gtk fcitx5-configtool kcm-fcitx5 fcitx5-autostart
+  fcitx5 fcitx5-chewing fcitx5-qt fcitx5-gtk fcitx5-configtool fcitx5-autostart
 dnf install -y \
   --disablerepo="*" --enablerepo="fedora" --enablerepo="updates" \
   --setopt=zchunk=False --setopt=minrate=0 \
